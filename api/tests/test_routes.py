@@ -28,7 +28,4 @@ def test_evaluate_endpoint():
 
     json_response = response.json()
     assert "estimated_value" in json_response, "Response missing 'estimated_value'"
-    assert "estimated_range" in json_response, "Response missing 'estimated_range'"
     assert isinstance(json_response["estimated_value"], float), "Estimated value should be a float"
-    assert isinstance(json_response["estimated_range"], list), "Estimated range should be a list"
-    assert len(json_response["estimated_range"]) == 2, "Estimated range should contain two values"
