@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from .CarInput import CarInput
-from .CalcFeatures import CalcFeatures
-from .ModelInput import ModelInput
+from ..types.CarInput import CarInput
+from ..utils.CalcFeatures import CalcFeatures
+from ..types.ModelInput import ModelInput
 
 router = APIRouter()
 
@@ -29,14 +29,14 @@ def evaluate_car(car_input: CarInput):
             doors_num=car_input.doors_num,
             colour=car_input.colour,
             first_owner=car_input.first_owner,
-            features_score=CalcFeatures.calc_feature_score(car_input.features_dict),
+            features_score=CalcFeatures.calc_feature_score(car_input.features_list),
             advanced_model=CalcFeatures.calc_advanced_model(car_input.model, car_input.version),
         )
         print('----------------------------')
         print(model_input)
 
-        # Tutaj używamy naszego modelu korzystając z model_input.get_dataframe()
-        estimated_value = 12345.67
+        # Tu używamy naszego modelu
+        estimated_value = 12345.89
 
         return CarEvaluation(estimated_value=estimated_value)
     except Exception as e:
