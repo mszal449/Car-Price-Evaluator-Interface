@@ -1,5 +1,7 @@
 "use client";
 
+import { version } from "os";
+import { features } from "process";
 import { useState, useEffect } from "react";
 import Select, { StylesConfig } from "react-select";
 import { MultiValue } from 'react-select';
@@ -33,6 +35,26 @@ interface FeatureOption {
   label: string;
 }
 
+interface ApiInput {
+  condition: string;
+  brand: string;
+  model: string;
+  generation: string;
+  year: number;
+  mileage: number;
+  power_hp: number;
+  displacement: number;
+  fuel_type: string;
+  drive: string;
+  transmission: string;
+  type: string;
+  doors_num: number;
+  colour: string;
+  first_owner: boolean;
+  version: string;
+  features: string[];
+}
+
 
 export default function DynamicForm() {
   // All avaiable form options
@@ -60,7 +82,7 @@ export default function DynamicForm() {
   const [selectedBrand, setSelectedBrand] = useState<string>("");
   const [selectedModel, setSelectedModel] = useState<string>("");
   const [selectedGeneration, setSelectedGeneration] = useState<string>("Unknown");
-  const [selectedVersion, setSelectedVersion] = useState<string>("");
+  const [selectedVersion, setSelectedVersion] = useState<string>("Unknown");
   const [models, setModels] = useState<string[]>([]);
   const [generations, setGenerations] = useState<string[]>([]);
   const [versions, setVersions] = useState<string[]>([]);
@@ -99,10 +121,25 @@ export default function DynamicForm() {
         (model) => model.vehicle_model === selectedModel
       );
       setGenerations(modelData?.vehicle_generation || []);
-      setSelectedGeneration("");
+      setSelectedGeneration("Unknown");
       setVersions([]);
     }
   }, [selectedModel, selectedBrand, formOptions]);
+
+  // Update versions when generation changes
+  useEffect(() => {
+    if (selectedGeneration && formOptions) {
+      const brandData = formOptions.vehicle_brand.find(
+        (brand) => brand.name === selectedBrand
+      );
+      const modelData = brandData?.vehicle_model.find(
+        (model) => model.vehicle_model === selectedModel
+      );
+      setVersions(modelData?.vehicle_version || []);
+      setSelectedVersion("Unknown");
+    }
+  }, [selectedGeneration, selectedModel, selectedBrand, formOptions]);
+
 
   // Update versions when generation changes
   useEffect(() => {
@@ -137,6 +174,7 @@ export default function DynamicForm() {
       selectedOptions ? selectedOptions.map((option) => option.value) : []
     );
   };
+  
 
   const customStyles: StylesConfig<FeatureOption, true> = {
     control: (provided) => ({
@@ -176,9 +214,49 @@ export default function DynamicForm() {
     }),
   };
 
-  const submitForm = (e: React.FormEvent<HTMLFormElement>) => {
+  // Submit form to the API for prediction
+  const submitForm = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(formState);
+    console.log("here")
+
+    const data: ApiInput = {
+      condition: formState.condition,
+      brand: selectedBrand,
+      model: selectedModel,
+      generation: selectedGeneration,
+      year: parseInt(formState.productionYear),
+      mileage: parseInt(formState.mileage),
+      power_hp: parseInt(formState.power),
+      displacement: parseInt(formState.displacement),
+      fuel_type: formState.fuelType,
+      drive: formState.drive,
+      transmission: formState.transmission,
+      type: formState.type,
+      doors_num: parseInt(formState.doors),
+      colour: formState.colour,
+      first_owner: formState.firstOwner === "Yes",
+      version: selectedVersion,
+      features: formState.features,
+    }
+    try {
+      console.log("here")
+
+      const res = await fetch("http://127.0.0.1:8000/evaluate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      })
+      if (!res.ok) {
+        console.log("error")
+        return
+      }
+      const res_data = await res.json()
+        console.log(res_data);
+    } catch (error) {
+      console.log(error)
+    }
   }
   
   
@@ -187,7 +265,7 @@ export default function DynamicForm() {
       <h1 className="text-xl font-bold mb-6">Vehicle Data Form</h1>
       <form className="space-y-4" onSubmit={submitForm}>
         {/* Condition */}
-        <button type='submit'>Submit form</button>
+        <button type='submit' className="button-colors p-2 rounded-md">Submit form</button>
         <div>
           <label htmlFor="condition" className="block text-sm font-medium">
             Condition
@@ -247,26 +325,47 @@ export default function DynamicForm() {
           </select>
         </div>
         <div>
-  <label htmlFor="generation" className="block text-sm font-medium">
-    Generation
-  </label>
-  <select
-    id="generation"
-    value={selectedGeneration}
-    onChange={(e) => setSelectedGeneration(e.target.value)}
-    disabled={!generations.length}
-    className="form-input"
-  >
-    <option value="Unknown">Unknown</option>
-    {generations
-      .filter((gen) => gen !== "Unknown")
-      .map((gen) => (
-        <option key={gen} value={gen}>
-          {gen}
-        </option>
-      ))}
-  </select>
-</div>
+          <label htmlFor="generation" className="block text-sm font-medium">
+            Generation
+          </label>
+          <select
+            id="generation"
+            value={selectedGeneration}
+            onChange={(e) => setSelectedGeneration(e.target.value)}
+            disabled={!generations.length}
+            className="form-input"
+          >
+            <option value="Unknown">Unknown</option>
+            {generations
+              .filter((gen) => gen !== "Unknown")
+              .map((gen) => (
+                <option key={gen} value={gen}>
+                  {gen}
+                </option>
+              ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="version" className="block text-sm font-medium">
+            Version
+          </label>
+          <select
+            id="version"
+            value={selectedVersion}
+            onChange={(e) => setSelectedVersion(e.target.value)}
+            disabled={!versions.length}
+            className="form-input"
+          >
+            <option value="Unknown">Unknown</option>
+            {versions
+              .filter((ver) => ver !== "Unknown" && ver !== "" && ver)
+              .map((gen) => (
+                <option key={gen} value={gen}>
+                  {gen}
+                </option>
+              ))}
+          </select>
+        </div>
 
         {/* Numeric Fields */}
         {[
@@ -343,8 +442,7 @@ export default function DynamicForm() {
             className="form-input"
           />
         </div>
-        <button type='submit'>Submit form</button>
-
+        <button type='submit' className="button-colors p-2 rounded-md">Submit form</button>
       </form>
     </div>
   );
