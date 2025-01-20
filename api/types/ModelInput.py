@@ -4,23 +4,23 @@ import pandas as pd
 
 @dataclass
 class ModelInput:
-    condition: str
-    brand: str
-    model: str
-    generation: str
-    year: int
-    mileage: int
-    power_hp: int
-    displacement: int
-    fuel_type: str
-    drive: str
-    transmission: str
-    type: str
-    doors_num: int
-    colour: str
-    first_owner: bool
-    features_score: int
-    advanced_model: str
+    Condition: str
+    Vehicle_brand: str
+    Vehicle_model: str
+    Vehicle_generation: str
+    Production_year: int
+    Mileage_km: int
+    Power_HP: int
+    Displacement_cm3: int
+    Fuel_type: str
+    Drive: str
+    Transmission: str
+    Type: str
+    Doors_number: int
+    Colour: str
+    First_owner: bool
+    Advanced_model: str
+    Feature_score: int
 
     def get_dataframe(self) -> pd.DataFrame:
         return pd.DataFrame([asdict(self)])
