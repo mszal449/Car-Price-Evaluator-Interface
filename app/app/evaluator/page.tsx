@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Select, { StylesConfig } from "react-select";
+import { MultiValue } from 'react-select';
 
 type VehicleModel = {
   vehicle_model: string;
@@ -13,7 +15,7 @@ type VehicleBrand = {
   vehicle_model: VehicleModel[];
 };
 
-type ResultJSON = {
+type FormOptions = {
   condition: string[];
   vehicle_brand: VehicleBrand[];
   fuel_type: string[];
@@ -25,16 +27,18 @@ type ResultJSON = {
   features: string[];
 };
 
-export default function DynamicForm() {
-  const [data, setData] = useState<ResultJSON | null>(null);
-  const [selectedBrand, setSelectedBrand] = useState<string>("");
-  const [selectedModel, setSelectedModel] = useState<string>("");
-  const [selectedGeneration, setSelectedGeneration] = useState<string>("");
-  const [selectedVersion, setSelectedVersion] = useState<string>("");
-  const [models, setModels] = useState<string[]>([]);
-  const [generations, setGenerations] = useState<string[]>([]);
-  const [versions, setVersions] = useState<string[]>([]);
 
+interface FeatureOption {
+  value: string;
+  label: string;
+}
+
+
+export default function DynamicForm() {
+  // All avaiable form options
+  const [formOptions, setFormOptions] = useState<FormOptions | null>(null);
+
+  // Current form state values
   const [formState, setFormState] = useState({
     price: "",
     condition: "",
@@ -52,18 +56,28 @@ export default function DynamicForm() {
     features: [] as string[],
   });
 
+
+  const [selectedBrand, setSelectedBrand] = useState<string>("");
+  const [selectedModel, setSelectedModel] = useState<string>("");
+  const [selectedGeneration, setSelectedGeneration] = useState<string>("Unknown");
+  const [selectedVersion, setSelectedVersion] = useState<string>("");
+  const [models, setModels] = useState<string[]>([]);
+  const [generations, setGenerations] = useState<string[]>([]);
+  const [versions, setVersions] = useState<string[]>([]);
+  
+  
   // Fetch data from the JSON file or API
   useEffect(() => {
     fetch("/unique_values.json")
       .then((res) => res.json())
-      .then((jsonData: ResultJSON) => setData(jsonData))
-      .catch((err) => console.error("Error fetching data:", err));
+      .then((jsonData: FormOptions) => setFormOptions(jsonData))
+      .catch((err) => console.error("Error fetching data:", err))
   }, []);
 
   // Update models when brand changes
   useEffect(() => {
-    if (selectedBrand && data) {
-      const brandData = data.vehicle_brand.find(
+    if (selectedBrand && formOptions) {
+      const brandData = formOptions.vehicle_brand.find(
         (brand) => brand.name === selectedBrand
       );
       setModels(
@@ -73,12 +87,12 @@ export default function DynamicForm() {
       setGenerations([]);
       setVersions([]);
     }
-  }, [selectedBrand, data]);
+  }, [selectedBrand, formOptions]);
 
   // Update generations when model changes
   useEffect(() => {
-    if (selectedModel && data) {
-      const brandData = data.vehicle_brand.find(
+    if (selectedModel && formOptions) {
+      const brandData = formOptions.vehicle_brand.find(
         (brand) => brand.name === selectedBrand
       );
       const modelData = brandData?.vehicle_model.find(
@@ -88,12 +102,12 @@ export default function DynamicForm() {
       setSelectedGeneration("");
       setVersions([]);
     }
-  }, [selectedModel, selectedBrand, data]);
+  }, [selectedModel, selectedBrand, formOptions]);
 
   // Update versions when generation changes
   useEffect(() => {
-    if (selectedModel && data) {
-      const brandData = data.vehicle_brand.find(
+    if (selectedModel && formOptions) {
+      const brandData = formOptions.vehicle_brand.find(
         (brand) => brand.name === selectedBrand
       );
       const modelData = brandData?.vehicle_model.find(
@@ -102,20 +116,78 @@ export default function DynamicForm() {
       setVersions(modelData?.vehicle_version || []);
       setSelectedVersion("");
     }
-  }, [selectedGeneration, selectedModel, selectedBrand, data]);
+  }, [selectedGeneration, selectedModel, selectedBrand, formOptions]);
 
   const handleInputChange = (
     field: string,
     value: string | number | string[]
   ) => {
     setFormState((prev) => ({ ...prev, [field]: value }));
+    console.log(formState);
   };
 
+  const featureOptions: FeatureOption[] = formOptions?.features.map((feature) => ({
+    value: feature,
+    label: feature,
+  })) || [];
+
+  const handleFeaturesChange = (selectedOptions: MultiValue<FeatureOption>) => {
+    handleInputChange(
+      "features",
+      selectedOptions ? selectedOptions.map((option) => option.value) : []
+    );
+  };
+
+  const customStyles: StylesConfig<FeatureOption, true> = {
+    control: (provided) => ({
+      ...provided,
+      color: 'white',
+      backgroundColor: '#001e2b',
+      borderColor: 'gray-300',
+      borderRadius: '0.375rem',
+      padding: '0.5rem',
+      boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+      '&:hover': {
+        borderColor: 'gray-500',
+      },
+    }),
+    menu: (provided) => ({
+      ...provided,
+      backgroundColor: 'gray',
+      borderRadius: '0.375rem',
+      boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+    }),
+    multiValue: (provided) => ({
+      ...provided,
+      backgroundColor: 'gray',
+      borderRadius: '0.375rem',
+    }),
+    multiValueLabel: (provided) => ({
+      ...provided,
+      backgroundColor: '001e2b',
+    }),
+    multiValueRemove: (provided) => ({
+      ...provided,
+      color: 'white',
+      '&:hover': {
+        backgroundColor: 'gray-300',
+        color: 'gray-700',
+      },
+    }),
+  };
+
+  const submitForm = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    console.log(formState);
+  }
+  
+  
   return (
-    <div className="p-6 text-gray-500">
+    <div className="p-6 flex flex-col items-center w-full">
       <h1 className="text-xl font-bold mb-6">Vehicle Data Form</h1>
-      <form className="space-y-4">
+      <form className="space-y-4" onSubmit={submitForm}>
         {/* Condition */}
+        <button type='submit'>Submit form</button>
         <div>
           <label htmlFor="condition" className="block text-sm font-medium">
             Condition
@@ -124,10 +196,10 @@ export default function DynamicForm() {
             id="condition"
             value={formState.condition}
             onChange={(e) => handleInputChange("condition", e.target.value)}
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+            className="form-input"
           >
             <option value="">Select</option>
-            {data?.condition.map((cond) => (
+            {formOptions?.condition.map((cond) => (
               <option key={cond} value={cond}>
                 {cond}
               </option>
@@ -144,10 +216,10 @@ export default function DynamicForm() {
             id="brand"
             value={selectedBrand}
             onChange={(e) => setSelectedBrand(e.target.value)}
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+            className="form-input"
           >
             <option value="">Select</option>
-            {data?.vehicle_brand.map((brand) => (
+            {formOptions?.vehicle_brand.map((brand) => (
               <option key={brand.name} value={brand.name}>
                 {brand.name}
               </option>
@@ -164,7 +236,7 @@ export default function DynamicForm() {
             value={selectedModel}
             onChange={(e) => setSelectedModel(e.target.value)}
             disabled={!models.length}
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+            className="form-input"
           >
             <option value="">Select</option>
             {models.map((model) => (
@@ -174,26 +246,27 @@ export default function DynamicForm() {
             ))}
           </select>
         </div>
-
         <div>
-          <label htmlFor="generation" className="block text-sm font-medium">
-            Generation
-          </label>
-          <select
-            id="generation"
-            value={selectedGeneration}
-            onChange={(e) => setSelectedGeneration(e.target.value)}
-            disabled={!generations.length}
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-          >
-            <option value="">Select</option>
-            {generations.map((gen) => (
-              <option key={gen} value={gen}>
-                {gen}
-              </option>
-            ))}
-          </select>
-        </div>
+  <label htmlFor="generation" className="block text-sm font-medium">
+    Generation
+  </label>
+  <select
+    id="generation"
+    value={selectedGeneration}
+    onChange={(e) => setSelectedGeneration(e.target.value)}
+    disabled={!generations.length}
+    className="form-input"
+  >
+    <option value="Unknown">Unknown</option>
+    {generations
+      .filter((gen) => gen !== "Unknown")
+      .map((gen) => (
+        <option key={gen} value={gen}>
+          {gen}
+        </option>
+      ))}
+  </select>
+</div>
 
         {/* Numeric Fields */}
         {[
@@ -213,23 +286,23 @@ export default function DynamicForm() {
               onChange={(e) =>
                 handleInputChange(id, parseFloat(e.target.value))
               }
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+              className="form-input"
             />
           </div>
         ))}
 
         {/* Other Dropdowns */}
         {[
-          { id: "fuelType", label: "Fuel Type", options: data?.fuel_type },
-          { id: "drive", label: "Drive", options: data?.drive },
+          { id: "fuelType", label: "Fuel Type", options: formOptions?.fuel_type },
+          { id: "drive", label: "Drive", options: formOptions?.drive },
           {
             id: "transmission",
             label: "Transmission",
-            options: data?.transmission,
+            options: formOptions?.transmission,
           },
-          { id: "type", label: "Type", options: data?.type },
-          { id: "doors", label: "Doors Number", options: data?.doors_number },
-          { id: "colour", label: "Colour", options: data?.colour },
+          { id: "type", label: "Type", options: formOptions?.type },
+          { id: "doors", label: "Doors Number", options: formOptions?.doors_number },
+          { id: "colour", label: "Colour", options: formOptions?.colour },
           { id: "firstOwner", label: "First Owner", options: ["Yes", "No"] },
         ].map(({ id, label, options }) => (
           <div key={id}>
@@ -240,7 +313,7 @@ export default function DynamicForm() {
               id={id}
               value={formState[id as keyof typeof formState]}
               onChange={(e) => handleInputChange(id, e.target.value)}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+              className="form-input"
             >
               <option value="">Select</option>
               {options?.map((opt) => (
@@ -257,25 +330,21 @@ export default function DynamicForm() {
           <label htmlFor="features" className="block text-sm font-medium">
             Features
           </label>
-          <select
+          <Select
             id="features"
-            multiple
-            value={formState.features}
-            onChange={(e) =>
-              handleInputChange(
-                "features",
-                Array.from(e.target.selectedOptions, (option) => option.value)
-              )
-            }
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-          >
-            {data?.features.map((feature) => (
-              <option key={feature} value={feature}>
-                {feature}
-              </option>
-            ))}
-          </select>
+            isMulti
+            options={featureOptions}
+            value={formState.features.map((feature) => ({
+              value: feature,
+              label: feature,
+            }))}
+            styles={customStyles}
+            onChange={handleFeaturesChange}
+            className="form-input"
+          />
         </div>
+        <button type='submit'>Submit form</button>
+
       </form>
     </div>
   );

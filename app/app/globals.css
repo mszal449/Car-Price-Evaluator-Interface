@@ -21,3 +21,8 @@ body {
 .button-colors {
   @apply bg-[#046c4b] border  border-[#04e863] ease-in duration-150 hover:bg-[#02593f];
 }
+
+
+.form-input {
+  @apply bg-[#023952] border border-slate-600  mt-1 p-2 block w-full rounded-md shadow-sm;
+}
