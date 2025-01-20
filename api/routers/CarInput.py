@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Dict
+from typing import Dict, List
 
 
 class CarInput(BaseModel):
@@ -19,4 +19,4 @@ class CarInput(BaseModel):
     colour: str
     first_owner: bool
     version: str
-    features_dict: Dict[str, bool] = {}
+    features_dict: List[str] = []
