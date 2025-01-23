@@ -186,7 +186,14 @@ export default function DynamicForm() {
         return
       }
       const res_data = await res.json()
-        console.log(res_data);
+        const searchParams = new URLSearchParams();
+        searchParams.append("estimated_price", res_data.estimated_price);
+        searchParams.append("expected_price_1y", res_data.expected_price_1y);
+        searchParams.append("expected_price_2y", res_data.expected_price_2y);
+        searchParams.append("expected_price_3y", res_data.expected_price_3y);
+        searchParams.append("expected_price_4y", res_data.expected_price_4y);
+
+        window.location.href = `/results?${searchParams.toString()}`;
     } catch (error) {
       console.log(error)
     }
