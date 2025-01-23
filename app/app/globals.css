@@ -19,10 +19,32 @@ body {
 }
 
 .button-colors {
-  @apply bg-[#046c4b] border  border-[#04e863] ease-in duration-150 hover:bg-[#02593f];
+  @apply bg-[#046c4b] border border-[#04e863] ease-in duration-150 hover:bg-[#02593f];
+}
+select {
+  -webkit-appearance: none !important;
+  appearance: none !important;
 }
 
-
 .form-input {
-  @apply bg-[#023952] border border-slate-600  mt-1 p-2 block w-full rounded-md shadow-sm;
+  @apply bg-[#023952] border border-slate-600 mt-1 p-2 block w-full rounded-md shadow-sm;
+}
+
+.rmsc.dark {
+  --rmsc-main: #28ff82;
+  --rmsc-hover: #023952;
+  --rmsc-selected: #012638;
+  --rmsc-border: #475569;
+  --rmsc-gray: #fff;
+  --rmsc-bg: #023952;
+}
+
+.rmsc.dark.mulit-select {
+  width: 400px;
+}
+
+.rmsc.dark.mulit-select .dropdown-heading-value {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { AiFillStar } from "react-icons/ai";
 import {
   BsCloud,
@@ -18,9 +19,9 @@ export default function Home() {
             Our car evaluator uses AI model to anylize and evaluate your cars
             value in no time.
           </div>
-          <button className="button-colors px-4 py-2 rounded-md">
+          <Link href={"/evaluator"} className="button-colors px-4 py-2 rounded-md">
             Try now!
-          </button>
+          </Link>
         </div>
         <Image
           src="/images/hero-white.png"

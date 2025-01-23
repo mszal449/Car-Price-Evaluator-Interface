@@ -1,39 +1,10 @@
 "use client";
 
-import { version } from "os";
-import { features } from "process";
+import FormStage1 from "@/components/evaluator/FormStage1";
+import FormStage2 from "@/components/evaluator/FormStage2";
+import FormStage3 from "@/components/evaluator/FormStage3";
+import { FormOptions } from "@/types";
 import { useState, useEffect } from "react";
-import Select, { StylesConfig } from "react-select";
-import { MultiValue } from 'react-select';
-
-type VehicleModel = {
-  vehicle_model: string;
-  vehicle_version: string[];
-  vehicle_generation: string[];
-};
-
-type VehicleBrand = {
-  name: string;
-  vehicle_model: VehicleModel[];
-};
-
-type FormOptions = {
-  condition: string[];
-  vehicle_brand: VehicleBrand[];
-  fuel_type: string[];
-  drive: string[];
-  transmission: string[];
-  type: string[];
-  doors_number: number[];
-  colour: string[];
-  features: string[];
-};
-
-
-interface FeatureOption {
-  value: string;
-  label: string;
-}
 
 interface ApiInput {
   condition: string;
@@ -58,6 +29,7 @@ interface ApiInput {
 
 export default function DynamicForm() {
   // All avaiable form options
+  const [formStage, setFormStage] = useState<number>(1);
   const [formOptions, setFormOptions] = useState<FormOptions | null>(null);
 
   // Current form state values
@@ -74,10 +46,21 @@ export default function DynamicForm() {
     type: "",
     doors: "",
     colour: "",
-    firstOwner: "",
+    firstOwner: "Yes",
     features: [] as string[],
   });
 
+  const nextStage = () => {
+    if (formStage < 3) {
+      setFormStage(formStage + 1);
+    }
+  }
+
+  const prevStage = () => {
+    if (formStage > 1) {
+      setFormStage(formStage - 1);
+    }
+  }
 
   const [selectedBrand, setSelectedBrand] = useState<string>("");
   const [selectedModel, setSelectedModel] = useState<string>("");
@@ -157,61 +140,10 @@ export default function DynamicForm() {
 
   const handleInputChange = (
     field: string,
-    value: string | number | string[]
+    value: string | number | (string | number)[]
   ) => {
     setFormState((prev) => ({ ...prev, [field]: value }));
     console.log(formState);
-  };
-
-  const featureOptions: FeatureOption[] = formOptions?.features.map((feature) => ({
-    value: feature,
-    label: feature,
-  })) || [];
-
-  const handleFeaturesChange = (selectedOptions: MultiValue<FeatureOption>) => {
-    handleInputChange(
-      "features",
-      selectedOptions ? selectedOptions.map((option) => option.value) : []
-    );
-  };
-  
-
-  const customStyles: StylesConfig<FeatureOption, true> = {
-    control: (provided) => ({
-      ...provided,
-      color: 'white',
-      backgroundColor: '#001e2b',
-      borderColor: 'gray-300',
-      borderRadius: '0.375rem',
-      padding: '0.5rem',
-      boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-      '&:hover': {
-        borderColor: 'gray-500',
-      },
-    }),
-    menu: (provided) => ({
-      ...provided,
-      backgroundColor: 'gray',
-      borderRadius: '0.375rem',
-      boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-    }),
-    multiValue: (provided) => ({
-      ...provided,
-      backgroundColor: 'gray',
-      borderRadius: '0.375rem',
-    }),
-    multiValueLabel: (provided) => ({
-      ...provided,
-      backgroundColor: '001e2b',
-    }),
-    multiValueRemove: (provided) => ({
-      ...provided,
-      color: 'white',
-      '&:hover': {
-        backgroundColor: 'gray-300',
-        color: 'gray-700',
-      },
-    }),
   };
 
   // Submit form to the API for prediction
@@ -238,6 +170,7 @@ export default function DynamicForm() {
       version: selectedVersion,
       features: formState.features,
     }
+    
     try {
       console.log("here")
 
@@ -261,188 +194,44 @@ export default function DynamicForm() {
   
   
   return (
-    <div className="p-6 flex flex-col items-center w-full">
-      <h1 className="text-xl font-bold mb-6">Vehicle Data Form</h1>
+    <div className="p-6 mt-10 flex flex-col items-center w-full">
+      <h1 className="text-4xl font-bold mb-6">Enter vehicle information:</h1>
       <form className="space-y-4" onSubmit={submitForm}>
-        {/* Condition */}
-        <button type='submit' className="button-colors p-2 rounded-md">Submit form</button>
-        <div>
-          <label htmlFor="condition" className="block text-sm font-medium">
-            Condition
-          </label>
-          <select
-            id="condition"
-            value={formState.condition}
-            onChange={(e) => handleInputChange("condition", e.target.value)}
-            className="form-input"
-          >
-            <option value="">Select</option>
-            {formOptions?.condition.map((cond) => (
-              <option key={cond} value={cond}>
-                {cond}
-              </option>
-            ))}
-          </select>
-        </div>
+        {formStage == 1 ? 
+          (<FormStage1 
+          formOptions={formOptions} 
+          selectedBrand={selectedBrand}
+          setSelectedBrand={setSelectedBrand}
+          models={models}
+          selectedModel={selectedModel}
+          setSelectedModel={setSelectedModel}
+          generations={generations}
+          selectedGeneration={selectedGeneration}
+          setSelectedGeneration={setSelectedGeneration}
+          versions={versions}
+          selectedVersion={selectedVersion}
+          setSelectedVersion={setSelectedVersion}
+          nextStage={nextStage}
+          />)
 
-        {/* Dynamic Selects */}
-        <div>
-          <label htmlFor="brand" className="block text-sm font-medium">
-            Brand
-          </label>
-          <select
-            id="brand"
-            value={selectedBrand}
-            onChange={(e) => setSelectedBrand(e.target.value)}
-            className="form-input"
-          >
-            <option value="">Select</option>
-            {formOptions?.vehicle_brand.map((brand) => (
-              <option key={brand.name} value={brand.name}>
-                {brand.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="model" className="block text-sm font-medium">
-            Model
-          </label>
-          <select
-            id="model"
-            value={selectedModel}
-            onChange={(e) => setSelectedModel(e.target.value)}
-            disabled={!models.length}
-            className="form-input"
-          >
-            <option value="">Select</option>
-            {models.map((model) => (
-              <option key={model} value={model}>
-                {model}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="generation" className="block text-sm font-medium">
-            Generation
-          </label>
-          <select
-            id="generation"
-            value={selectedGeneration}
-            onChange={(e) => setSelectedGeneration(e.target.value)}
-            disabled={!generations.length}
-            className="form-input"
-          >
-            <option value="Unknown">Unknown</option>
-            {generations
-              .filter((gen) => gen !== "Unknown")
-              .map((gen) => (
-                <option key={gen} value={gen}>
-                  {gen}
-                </option>
-              ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="version" className="block text-sm font-medium">
-            Version
-          </label>
-          <select
-            id="version"
-            value={selectedVersion}
-            onChange={(e) => setSelectedVersion(e.target.value)}
-            disabled={!versions.length}
-            className="form-input"
-          >
-            <option value="Unknown">Unknown</option>
-            {versions
-              .filter((ver) => ver !== "Unknown" && ver !== "" && ver)
-              .map((gen) => (
-                <option key={gen} value={gen}>
-                  {gen}
-                </option>
-              ))}
-          </select>
-        </div>
-
-        {/* Numeric Fields */}
-        {[
-          { id: "productionYear", label: "Production Year" },
-          { id: "mileage", label: "Mileage (km)" },
-          { id: "power", label: "Power (HP)" },
-          { id: "displacement", label: "Displacement (cm³)" },
-        ].map(({ id, label }) => (
-          <div key={id}>
-            <label htmlFor={id} className="block text-sm font-medium">
-              {label}
-            </label>
-            <input
-              type="number"
-              id={id}
-              value={formState[id as keyof typeof formState]}
-              onChange={(e) =>
-                handleInputChange(id, parseFloat(e.target.value))
-              }
-              className="form-input"
-            />
-          </div>
-        ))}
-
-        {/* Other Dropdowns */}
-        {[
-          { id: "fuelType", label: "Fuel Type", options: formOptions?.fuel_type },
-          { id: "drive", label: "Drive", options: formOptions?.drive },
-          {
-            id: "transmission",
-            label: "Transmission",
-            options: formOptions?.transmission,
-          },
-          { id: "type", label: "Type", options: formOptions?.type },
-          { id: "doors", label: "Doors Number", options: formOptions?.doors_number },
-          { id: "colour", label: "Colour", options: formOptions?.colour },
-          { id: "firstOwner", label: "First Owner", options: ["Yes", "No"] },
-        ].map(({ id, label, options }) => (
-          <div key={id}>
-            <label htmlFor={id} className="block text-sm font-medium">
-              {label}
-            </label>
-            <select
-              id={id}
-              value={formState[id as keyof typeof formState]}
-              onChange={(e) => handleInputChange(id, e.target.value)}
-              className="form-input"
-            >
-              <option value="">Select</option>
-              {options?.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
-          </div>
-        ))}
-
-        {/* Features (Multiple Select) */}
-        <div>
-          <label htmlFor="features" className="block text-sm font-medium">
-            Features
-          </label>
-          <Select
-            id="features"
-            isMulti
-            options={featureOptions}
-            value={formState.features.map((feature) => ({
-              value: feature,
-              label: feature,
-            }))}
-            styles={customStyles}
-            onChange={handleFeaturesChange}
-            className="form-input"
+        : formStage == 2 ? 
+        (<FormStage2
+            formState={formState}
+            formOptions={formOptions}
+            handleInputChange={handleInputChange}
+            nextStage={nextStage}
+            prevStage={prevStage}
           />
-        </div>
-        <button type='submit' className="button-colors p-2 rounded-md">Submit form</button>
+          
+        ) : (
+          <FormStage3
+          formState={formState}
+            formOptions={formOptions}
+            handleInputChange={handleInputChange}
+            prevStage={prevStage}
+          />
+        )
+      }
       </form>
     </div>
   );

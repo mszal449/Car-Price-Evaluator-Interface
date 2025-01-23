@@ -17,3 +17,26 @@ export interface IUserInputOptions {
   Model_version: { options: string[] };
   Features: { options: string[] };
 }
+
+export type FormOptions = {
+  condition: string[];
+  vehicle_brand: VehicleBrand[];
+  fuel_type: string[];
+  drive: string[];
+  transmission: string[];
+  type: string[];
+  doors_number: number[];
+  colour: string[];
+  features: string[];
+};
+
+type VehicleModel = {
+  vehicle_model: string;
+  vehicle_version: string[];
+  vehicle_generation: string[];
+};
+
+type VehicleBrand = {
+  name: string;
+  vehicle_model: VehicleModel[];
+};
