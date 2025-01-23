@@ -1,10 +1,10 @@
 from fastapi import FastAPI
-from api.routers import car_validation
+from routers import evaluate_car
 from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
 
 app = FastAPI()
-
-app.include_router(car_validation.router)
+app.include_router(evaluate_car.router)
 
 origins = [
     "http://localhost:3000",
@@ -18,6 +18,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
 @app.get("/")
 def read_root():
     return "Welcome to the Car Evaluation API!"
+
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
