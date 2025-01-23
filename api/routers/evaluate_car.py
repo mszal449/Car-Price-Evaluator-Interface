@@ -12,7 +12,12 @@ router = APIRouter()
 
 
 class CarEvaluation(BaseModel):
-    estimated_value: float
+    estimated_price: float
+    expected_price_1y: float
+    expected_price_2y: float
+    expected_price_3y: float
+    expected_price_4y: float
+    expected_price_5y: float
 
 
 @router.post("/evaluate", response_model=CarEvaluation)
@@ -23,7 +28,6 @@ def evaluate_car(car_input: CarDataValidation):
             Vehicle_brand=car_input.brand,
             Vehicle_model=car_input.model,
             Vehicle_generation=car_input.generation,
-            Production_year=car_input.year,
             Mileage_km=car_input.mileage,
             Power_HP=car_input.power_hp,
             Displacement_cm3=car_input.displacement,
@@ -36,9 +40,19 @@ def evaluate_car(car_input: CarDataValidation):
             First_owner=car_input.first_owner,
             Advanced_model=CalcFeatures.calc_advanced_model(car_input.model, car_input.version),
             Feature_score=CalcFeatures.calc_feature_score(car_input.features_list),
+            Car_age=CalcFeatures.calc_car_age(car_input.year),
+        )
+        future_input = model_input.forward_Nyears(5)
+
+        return CarEvaluation(
+            estimated_price=model_handler.predict(model_input),
+            expected_price_1y=model_handler.predict(future_input[0]),
+            expected_price_2y=model_handler.predict(future_input[1]),
+            expected_price_3y=model_handler.predict(future_input[2]),
+            expected_price_4y=model_handler.predict(future_input[3]),
+            expected_price_5y=model_handler.predict(future_input[4]),
         )
 
-        return CarEvaluation(estimated_value=model_handler.predict(model_input))
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error evaluating car: {str(e)}")
