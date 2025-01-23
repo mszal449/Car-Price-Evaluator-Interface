@@ -181,3 +181,5 @@ trained_models
 tuning_results
 
 .idea
+/venv
+/model/model.bst

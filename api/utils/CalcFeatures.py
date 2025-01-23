@@ -1,6 +1,8 @@
 from typing import List
+from datetime import datetime
 
 from .features_weights import weights
+
 
 class CalcFeatures:
     @staticmethod
@@ -10,3 +12,6 @@ class CalcFeatures:
     @staticmethod
     def calc_advanced_model(model: str, version: str) -> str:
         return f"{model} {version}".strip()
+    
+    def calc_car_age(production_year: int) -> int:
+        return datetime.now().year - production_year
