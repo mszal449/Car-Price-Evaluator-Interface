@@ -110,9 +110,9 @@ export default function Home() {
           </p>
         </div>
       </div>
-      <button className="button-colors px-6 py-3 text-xl rounded-md mt-10 mb-20">
+      <Link href={"/evaluator"} className="button-colors px-6 py-3 text-xl rounded-md mt-10 mb-20">
         Get Your Evaluation Now!
-      </button>
+      </Link>
     </div>
   );
 }
