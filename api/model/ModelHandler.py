@@ -2,6 +2,7 @@ from pathlib import Path
 from xgboost import Booster, DMatrix
 from model.ModelInput import ModelInput
 from common.Config import Config
+from model.category_encoding_from_json import category_encoding_from_json
 
 
 class ModelHandler:
@@ -17,7 +18,7 @@ class ModelHandler:
 
     def predict(self, model_input: ModelInput) -> float:
         df = model_input.get_dataframe()
-        df[Config.categorical_columns] = df[Config.categorical_columns].astype('category')
+        df = category_encoding_from_json(df, Config.category_mapping_path)
         return self.model.predict(DMatrix(df, enable_categorical=True))[0]
     
 
