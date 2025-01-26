@@ -39,6 +39,13 @@ const FormStage3 = (
     );
   };  
 
+  const formatTypeDisplayValue = (value: string): string => {
+    return value
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   return (
     <div className='flex flex-col gap-4 w-[400px] pb-[250px]'>
       {[
@@ -67,7 +74,7 @@ const FormStage3 = (
               <option value="">Select</option>
               {options?.map((opt) => (
                 <option key={opt} value={opt}>
-                  {opt}
+                  {id === "type" ? formatTypeDisplayValue(opt) : opt}
                 </option>
               ))}
             </select>

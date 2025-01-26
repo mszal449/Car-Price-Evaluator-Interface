@@ -4,7 +4,7 @@ Make sure you have NodeJs and npm installed on your machine.
 Run
 
 ```bash
-npm install
+npm install --legacy-peer-deps
 ```
 
 ## Starting program
