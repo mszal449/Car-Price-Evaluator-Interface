@@ -4,6 +4,7 @@ import FormStage1 from "@/components/evaluator/FormStage1";
 import FormStage2 from "@/components/evaluator/FormStage2";
 import FormStage3 from "@/components/evaluator/FormStage3";
 import { FormOptions } from "@/types";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 interface ApiInput {
@@ -26,11 +27,30 @@ interface ApiInput {
   features: string[];
 }
 
+interface FormState {
+  price: string;
+  condition: string;
+  productionYear: string;
+  mileage: string;
+  power: string;
+  displacement: string;
+  fuelType: string;
+  drive: string;
+  transmission: string;
+  type: string;
+  doors: string;
+  colour: string;
+  firstOwner: string;
+  features: string[];
+}
+
 
 export default function DynamicForm() {
   // All avaiable form options
   const [formStage, setFormStage] = useState<number>(1);
   const [formOptions, setFormOptions] = useState<FormOptions | null>(null);
+  const [error, setError] = useState<string>("");
+  const router = useRouter()
 
   // Current form state values
   const [formState, setFormState] = useState({
@@ -94,7 +114,7 @@ export default function DynamicForm() {
     }
   }, [selectedBrand, formOptions]);
 
-  // Update generations when model changes
+  // Update generations and versions when model changes
   useEffect(() => {
     if (selectedModel && formOptions) {
       const brandData = formOptions.vehicle_brand.find(
@@ -104,76 +124,82 @@ export default function DynamicForm() {
         (model) => model.vehicle_model === selectedModel
       );
       setGenerations(modelData?.vehicle_generation || []);
-      setSelectedGeneration("Unknown");
-      setVersions([]);
-    }
-  }, [selectedModel, selectedBrand, formOptions]);
-
-  // Update versions when generation changes
-  useEffect(() => {
-    if (selectedGeneration && formOptions) {
-      const brandData = formOptions.vehicle_brand.find(
-        (brand) => brand.name === selectedBrand
-      );
-      const modelData = brandData?.vehicle_model.find(
-        (model) => model.vehicle_model === selectedModel
-      );
       setVersions(modelData?.vehicle_version || []);
+      setSelectedGeneration("Unknown");
       setSelectedVersion("Unknown");
     }
-  }, [selectedGeneration, selectedModel, selectedBrand, formOptions]);
-
-
-  // Update versions when generation changes
-  useEffect(() => {
-    if (selectedModel && formOptions) {
-      const brandData = formOptions.vehicle_brand.find(
-        (brand) => brand.name === selectedBrand
-      );
-      const modelData = brandData?.vehicle_model.find(
-        (model) => model.vehicle_model === selectedModel
-      );
-      setVersions(modelData?.vehicle_version || []);
-      setSelectedVersion("");
-    }
-  }, [selectedGeneration, selectedModel, selectedBrand, formOptions]);
+  }, [selectedModel, selectedBrand, formOptions]);
 
   const handleInputChange = (
     field: string,
     value: string | number | (string | number)[]
   ) => {
+    
     setFormState((prev) => ({ ...prev, [field]: value }));
     console.log(formState);
+  };
+
+  const validateStage3 = () => {
+    const requiredStringFields: (keyof FormState)[] = [
+      'fuelType',
+      'drive',
+      'transmission',
+      'type',
+      'colour',
+      'firstOwner'
+    ];
+  
+    const requiredNumberFields: (keyof FormState)[] = ['doors'];
+  
+    const hasEmptyStringField = requiredStringFields.some(
+      field => !formState[field] || formState[field] === ""
+    );
+  
+    const hasInvalidNumberField = requiredNumberFields.some(
+      field => {
+        const value = formState[field];
+        if (Array.isArray(value)) return true;
+        return !value || parseInt(value) <= 0;
+      }
+    );
+  
+    if (hasEmptyStringField || hasInvalidNumberField) {
+      setError("All fields must be filled with valid values.");
+      return false;
+    }
+  
+    setError("");
+    return true;
   };
 
   // Submit form to the API for prediction
   const submitForm = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("here")
-
-    const data: ApiInput = {
-      condition: formState.condition,
-      brand: selectedBrand,
-      model: selectedModel,
-      generation: selectedGeneration,
-      year: parseInt(formState.productionYear),
-      mileage: parseInt(formState.mileage),
-      power_hp: parseInt(formState.power),
-      displacement: parseInt(formState.displacement),
-      fuel_type: formState.fuelType,
-      drive: formState.drive,
-      transmission: formState.transmission,
-      type: formState.type,
-      doors_num: parseInt(formState.doors),
-      colour: formState.colour,
-      first_owner: formState.firstOwner === "Yes",
-      version: selectedVersion,
-      features: formState.features,
+    if (!validateStage3()) {
+      return
     }
-    
-    try {
-      console.log("here")
 
+    try {
+      const data: ApiInput = {
+        condition: formState.condition,
+        brand: selectedBrand,
+        model: selectedModel,
+        generation: selectedGeneration,
+        year: parseInt(formState.productionYear),
+        mileage: parseInt(formState.mileage),
+        power_hp: parseInt(formState.power),
+        displacement: parseInt(formState.displacement),
+        fuel_type: formState.fuelType,
+        drive: formState.drive,
+        transmission: formState.transmission,
+        type: formState.type,
+        doors_num: parseInt(formState.doors),
+        colour: formState.colour,
+        first_owner: formState.firstOwner === "Yes",
+        version: selectedVersion,
+        features: formState.features,
+      }
+    
       const res = await fetch("http://127.0.0.1:8000/evaluate", {
         method: "POST",
         headers: {
@@ -185,6 +211,7 @@ export default function DynamicForm() {
         console.log("error")
         return
       }
+
       const res_data = await res.json()
         const searchParams = new URLSearchParams();
         searchParams.append("estimated_price", res_data.estimated_price);
@@ -193,7 +220,7 @@ export default function DynamicForm() {
         searchParams.append("expected_price_3y", res_data.expected_price_3y);
         searchParams.append("expected_price_4y", res_data.expected_price_4y);
 
-        window.location.href = `/results?${searchParams.toString()}`;
+        router.push(`/results?${searchParams.toString()}`);
     } catch (error) {
       console.log(error)
     }
@@ -220,9 +247,8 @@ export default function DynamicForm() {
           setSelectedVersion={setSelectedVersion}
           nextStage={nextStage}
           />)
-
-        : formStage == 2 ? 
-        (<FormStage2
+        : formStage == 2 ? (
+        <FormStage2
             formState={formState}
             formOptions={formOptions}
             handleInputChange={handleInputChange}
@@ -236,8 +262,12 @@ export default function DynamicForm() {
             formOptions={formOptions}
             handleInputChange={handleInputChange}
             prevStage={prevStage}
+            error={error}
           />
         )
+      }
+      {error && 
+        <div className="text-center text-red-500 text-xl">{error}</div>
       }
       </form>
     </div>

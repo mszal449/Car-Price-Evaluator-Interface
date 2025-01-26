@@ -109,7 +109,7 @@ const ResultsPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center pt-40 h-screen">
+    <div className="flex flex-col items-center py-40 h-screen">
       <div className="flex flex-col items-center">
         <h1 className="text-4xl text-center font-bold pb-10">We have got your results!</h1>
         <SemiCircularProgressBar value={estimated_price} maxValue={250000} />

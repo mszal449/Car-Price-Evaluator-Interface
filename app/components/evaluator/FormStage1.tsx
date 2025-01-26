@@ -1,5 +1,6 @@
+"use client";
 import { FormOptions } from '@/types'
-import React from 'react'
+import React, { useState } from 'react'
 
 interface FormStage1Props {
   formOptions: FormOptions | null,
@@ -32,6 +33,28 @@ const FormStage1 = ({
   selectedVersion,
   setSelectedVersion,
 } : FormStage1Props) => {
+  const [error, setError] = useState<string>("");
+
+  function handleNext() {
+    console.log({
+      selectedBrand,
+      selectedModel,
+      selectedGeneration,
+      selectedVersion,
+    });
+    if (
+      selectedBrand && 
+      selectedModel && 
+      (selectedGeneration === "Unknown" || selectedGeneration) && 
+      (selectedVersion === "Unknown" || selectedVersion)
+    ) {
+      setError("");
+      nextStage();
+    } else {
+      setError("Brand and model values must be given.");
+    }
+  }
+
   return (
     <div className='flex flex-col gap-4 w-[400px]'>
       <div>
@@ -86,7 +109,7 @@ const FormStage1 = ({
           >
             <option value="Unknown">Unknown</option>
             {generations
-              .filter((gen) => gen !== "Unknown")
+              .filter((gen) => gen !== "Unknown" && gen !== "")
               .map((gen) => (
                 <option key={gen} value={gen}>
                   {gen}
@@ -107,16 +130,19 @@ const FormStage1 = ({
           >
             <option value="Unknown">Unknown</option>
             {versions
-              .filter((ver) => ver !== "Unknown" && ver !== "" && ver)
-              .map((gen) => (
-                <option key={gen} value={gen}>
-                  {gen}
+              .filter((ver) => ver !== "Unknown" && ver !== "")
+              .map((ver) => (
+                <option key={ver} value={ver}>
+                  {ver}
                 </option>
               ))}
           </select>
         </div>
-        <div className='flex justify-end pt-3'>
-          <button onClick={nextStage} className="button-colors p-2 rounded-md">Next</button>
+        {error && 
+          <div className='text-red-500 text-center'>{error}</div>
+        }
+        <div className='flex justify-end'>
+          <button type="button" onClick={handleNext} className="button-colors p-2 rounded-md">Next</button>
         </div>
     </div>
 
