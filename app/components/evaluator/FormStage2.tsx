@@ -17,6 +17,27 @@ const FormStage2 = (
         prevStage
     }: FormStage2Props
 ) => {
+  const [error, setError] = React.useState("");
+  
+  function handleNext() {
+    if (!formState.condition || formState.condition === "") {
+      setError("Condition must be given.")
+      return;
+    }
+
+    if (
+      formState.productionYear > 0 &&
+      formState.mileage > 0 &&
+      formState.power > 0 &&
+      formState.displacement > 0
+    ) {
+      setError("");
+      nextStage();
+    } else {
+      setError("All numeric fields must have positive values.");
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4 w-[400px]">
         <div>
@@ -52,16 +73,19 @@ const FormStage2 = (
               type="number"
               id={id}
               value={formState[id] || ""}
-              onChange={(e) =>
-                handleInputChange(id, parseFloat(e.target.value))
+              onChange={(e) =>{
+                const value = parseFloat(e.target.value);
+                  handleInputChange(id, value)
+                }
               }
               className="form-input"
             />
           </div>
         ))}
+        {error && <div className="text-red-500 text-center">{error}</div>}
         <div className='flex justify-between'>
-          <button onClick={prevStage} className="button-colors p-2 rounded-md">Back</button>
-          <button onClick={nextStage} className="button-colors p-2 rounded-md">Next</button>
+          <button type='button' onClick={prevStage} className="button-colors p-2 rounded-md">Back</button>
+          <button type='button' onClick={handleNext} className="button-colors p-2 rounded-md">Next</button>
         </div>
 
     </div>

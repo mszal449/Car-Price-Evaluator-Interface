@@ -13,7 +13,8 @@ interface FormStage3Props {
     formState: any,
     formOptions: FormOptions | null,
     handleInputChange: (key: string, value: string | number | (string | number)[]) => void,    
-    prevStage: () => void
+    prevStage: () => void,
+    error: string
 }
 
 const FormStage3 = (
@@ -21,16 +22,10 @@ const FormStage3 = (
     formState,
     formOptions,
     handleInputChange,
-    prevStage
+    prevStage,
+    error
 }: FormStage3Props
 ) => {
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);  
-  }, []);
-
-  
 
   const featureOptions: FeatureOption[] = formOptions?.features.map((feature) => ({
     value: feature,
@@ -44,56 +39,12 @@ const FormStage3 = (
     );
   };  
 
-  const customStyles: StylesConfig<FeatureOption, true> = {
-    control: (provided) => ({
-      ...provided,
-      color: 'white',
-      backgroundColor: '#001e2b',
-      borderColor: 'gray-300',
-      borderRadius: '0.375rem',
-      padding: '0.5rem',
-      boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-      '&:hover': {
-        borderColor: 'gray-500',
-      },
-      maxWidth: '100%',
-      minWidth: '250px',  
-    }),
-    menu: (provided) => ({
-      ...provided,
-      backgroundColor: 'gray',
-      borderRadius: '0.375rem',
-      boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-    }),
-    multiValue: (provided) => ({
-      ...provided,
-      backgroundColor: 'gray',
-      borderRadius: '0.375rem',
-      flexWrap: 'wrap',
-      maxWidth: '100%',  
-    }),
-    multiValueLabel: (provided) => ({
-      ...provided,
-      border: "1px solid white",
-      borderRight: "none",
-      borderTopLeftRadius: "0.375rem",
-      borderBottomLeftRadius: "0.375rem",
-      color: "white",
-      backgroundColor: '#001e2b',
-    }),
-    multiValueRemove: (provided) => ({
-      ...provided,
-      color: 'white',
-      '&:hover': {
-        backgroundColor: 'gray-300',
-        color: 'gray-700',
-      },
-    }),
+  const formatTypeDisplayValue = (value: string): string => {
+    return value
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   };
-
-  if (!isClient) {
-    return null;
-  }
 
   return (
     <div className='flex flex-col gap-4 w-[400px] pb-[250px]'>
@@ -123,7 +74,7 @@ const FormStage3 = (
               <option value="">Select</option>
               {options?.map((opt) => (
                 <option key={opt} value={opt}>
-                  {opt}
+                  {id === "type" ? formatTypeDisplayValue(opt) : opt}
                 </option>
               ))}
             </select>
@@ -143,8 +94,10 @@ const FormStage3 = (
         className='dark mulit-select'
       />
 
+      {error && <div className="text-red-500 text-center">{error}</div>}
+
     <div className='flex justify-between pt-2'>
-          <button onClick={prevStage} className="button-colors p-2 rounded-md">Back</button>
+          <button type='button' onClick={prevStage} className="button-colors p-2 rounded-md">Back</button>
           <button type='submit' className="button-colors p-2 rounded-md">Submit</button>
         </div>
     </div>
